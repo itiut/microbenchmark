@@ -1,11 +1,14 @@
 #define _LARGEFILE64_SOURCE
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 199309L
+#endif
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 #include "libsafe.h"
 
@@ -69,9 +72,10 @@ void *safe_calloc(size_t nmemb, size_t size) {
     return ptr;
 }
 
-void safe_gettimeofday(struct timeval *tv) {
-    if (gettimeofday(tv, NULL) == -1) {
-        perror("gettimeofday(2)");
+void safe_clock_gettime(clockid_t clk_id, struct timespec *tp) {
+    int ret = clock_gettime(clk_id, tp);
+    if (ret == -1) {
+        perror("safe_clock_gettime: clock_gettime(2)");
         exit(EXIT_FAILURE);
     }
 }

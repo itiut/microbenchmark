@@ -11,6 +11,6 @@ void safe_lseek64(int fd, long long offset, int whence);
 
 void *safe_calloc(size_t nmemb, size_t size);
 
-void safe_gettimeofday(struct timeval *tv);
+void safe_clock_gettime(clockid_t clk_id, struct timespec *tp);
 
 #endif /* LIBSAFE_H */

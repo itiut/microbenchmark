@@ -1,3 +1,6 @@
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 199309L
+#endif
 #include <fcntl.h>
 #include <getopt.h>
 #include <linux/fs.h>
@@ -7,7 +10,6 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
@@ -148,11 +150,11 @@ void run(int fd, const char *device, bench_type_t bench_type, long long each_byt
     }
 
     char *buffer = (char *) safe_calloc(each_bytes, sizeof(char));
-    struct timeval *begin_tvs = (struct timeval *) calloc(count, sizeof(struct timeval));
-    struct timeval *end_tvs = (struct timeval *) calloc(count, sizeof(struct timeval));
+    struct timespec *begin_tss = (struct timespec *) calloc(count, sizeof(struct timespec));
+    struct timespec *end_tss = (struct timespec *) calloc(count, sizeof(struct timespec));
 
     for (long long i = 0; i < count; i++) {
-        safe_gettimeofday(&begin_tvs[i]);
+        safe_clock_gettime(CLOCK_REALTIME, &begin_tss[i]);
         if (bench_type & 0x2) {
             /* random */
             long long offset = llrandom(0, count - 1) * each_bytes;
@@ -166,12 +168,12 @@ void run(int fd, const char *device, bench_type_t bench_type, long long each_byt
             /* read */
             safe_read(fd, buffer, each_bytes);
         }
-        safe_gettimeofday(&end_tvs[i]);
+        safe_clock_gettime(CLOCK_REALTIME, &end_tss[i]);
     }
 
     double elapsed_time_sec = 0;
     for (long long i = 0; i < count; i++) {
-        elapsed_time_sec += timeval_to_f(end_tvs[i]) - timeval_to_f(begin_tvs[i]);
+        elapsed_time_sec += timespec_to_f(end_tss[i]) - timespec_to_f(begin_tss[i]);
     }
     double total_size_mb = each_bytes * count * 1e-6;
     double throughput_mb_per_sec = total_size_mb / elapsed_time_sec;
@@ -191,29 +193,29 @@ void run(int fd, const char *device, bench_type_t bench_type, long long each_byt
     printf("#   elapsed time    %f sec\n",      elapsed_time_sec);
     printf("#   throughput      %.3f MB/sec\n", throughput_mb_per_sec);
     printf("#   IOPS            %.3f\n",        count / elapsed_time_sec);
-    printf("#   latency (mean)  %f msec\n",     elapsed_time_sec / count * 1e3);
+    printf("#   latency (mean)  %f msec\n",     elapsed_time_sec * 1e3 / count);
     printf("####################################\n");
 
     if (is_verbose) {
-        printf("#count total_latency[sec]\n");
+        printf("#count total_latency[msec]\n");
         long long display_interval = (count > 1000) ? count / 1000 : 1;
         double total = 0;
         for (long long i = 0; i < count; i++) {
-            total += timeval_to_f(end_tvs[i]) - timeval_to_f(begin_tvs[i]);
+            total += timespec_to_f(end_tss[i]) - timespec_to_f(begin_tss[i]);
             if ((i + 1) % display_interval == 0) {
-                printf("%lld %f\n", i + 1, total);
+                printf("%lld %f\n", i + 1, total * 1e3);
                 total= 0;
             }
         }
     }
 
     free(buffer);
-    free(begin_tvs);
-    free(end_tvs);
+    free(begin_tss);
+    free(end_tss);
 }
 
-double timeval_to_f(struct timeval tv) {
-    return tv.tv_sec + tv.tv_usec * 1e-6;
+double timespec_to_f(struct timespec ts) {
+    return ts.tv_sec + ts.tv_nsec * 1e-9;
 }
 
 long long llrandom(long long min, long long max) {
