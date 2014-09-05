@@ -169,8 +169,11 @@ void run(int fd, const char *device, bench_type_t bench_type, long long each_byt
         safe_gettimeofday(&end_tvs[i]);
     }
 
+    double elapsed_time_sec = 0;
+    for (long long i = 0; i < count; i++) {
+        elapsed_time_sec += timeval_to_f(end_tvs[i]) - timeval_to_f(begin_tvs[i]);
+    }
     double total_size_mb = each_bytes * count * 1e-6;
-    double elapsed_time_sec = timeval_to_f(end_tvs[count - 1]) - timeval_to_f(begin_tvs[0]);
     double throughput_mb_per_sec = total_size_mb / elapsed_time_sec;
 
     printf("####################################\n");
