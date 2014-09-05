@@ -192,13 +192,14 @@ void run(int fd, const char *device, bench_type_t bench_type, long long each_byt
     printf("####################################\n");
 
     if (is_verbose) {
-        long long skip = (count > 1000) ? count / 1000 : 1;
-        double sum = 0;
+        printf("#count total_latency[sec]\n");
+        long long display_interval = (count > 1000) ? count / 1000 : 1;
+        double total = 0;
         for (long long i = 0; i < count; i++) {
-            sum += timeval_to_f(end_tvs[i]) - timeval_to_f(begin_tvs[i]);
-            if ((i + 1) % skip == 0) {
-                printf("%lld %f\n", i + 1, sum);
-                sum = 0;
+            total += timeval_to_f(end_tvs[i]) - timeval_to_f(begin_tvs[i]);
+            if ((i + 1) % display_interval == 0) {
+                printf("%lld %f\n", i + 1, total);
+                total= 0;
             }
         }
     }
