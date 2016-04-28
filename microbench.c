@@ -20,6 +20,13 @@ static const long long DEFAULT_EACH_BYTES = 512;
 static const long long DEFAULT_COUNT = 100000;
 static const bench_type_t DEFAULT_BENCH_TYPE = SEQ_RD;
 
+static const char *type_names[] = {
+    "SEQ_RD",
+    "SEQ_WR",
+    "RAND_RD",
+    "RAND_WR"
+};
+
 static const struct option longopts[] = {
     {"bs",      required_argument, NULL, 'b'},
     {"count",   required_argument, NULL, 'c'},
@@ -101,19 +108,12 @@ void usage(const char *program_name) {
     printf("Usage: %s [OPTION]... DEVICE\n", program_name);
     printf("Run micro benchmark on DEVICE according to the options.\n");
     printf("\n");
-    printf("  -b, --bs=BYTES   read and write up to BYTES bytes at a time\n");
-    printf("  -c, --count=N    read and write up to N blocks or EOF\n");
+    printf("  -b, --bs=BYTES   read and write up to BYTES bytes at a time (default: %lld)\n", DEFAULT_EACH_BYTES);
+    printf("  -c, --count=N    read and write up to N blocks or EOF (default: %lld)\n", DEFAULT_COUNT);
     printf("  -h, --help       display this help and exit\n");
     printf("  -t, --type=TYPE  set read and write types to TYPES:\n");
-    printf("                     SEQ_RD, SEQ_WR, RAND_RD, RAND_WR\n");
+    printf("                     SEQ_RD, SEQ_WR, RAND_RD, RAND_WR (default: %s)\n", type_names[DEFAULT_BENCH_TYPE]);
 }
-
-static const char *type_names[] = {
-    "SEQ_RD",
-    "SEQ_WR",
-    "RAND_RD",
-    "RAND_WR"
-};
 
 bench_type_t bench_name_to_type(const char *type_name) {
     for (size_t i = 0; i < sizeof(type_names) / sizeof(type_names[0]); i++) {
