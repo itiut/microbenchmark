@@ -5,7 +5,7 @@ OBJECTS := $(SOURCES:.c=.o)
 
 CC := gcc
 CFLAGS := -Wall -O2 -std=c99
-LDLIBS := -lrt
+LDLIBS := -lm -lrt
 
 .SUFFIXES: .c .o
 

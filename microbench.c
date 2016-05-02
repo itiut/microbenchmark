@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <getopt.h>
 #include <linux/fs.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -144,9 +145,10 @@ void run(int fd, const char *device, bench_type_t bench_type, long long each_byt
     safe_ioctl(fd, BLKGETSIZE, &n_of_sectors);
     long long volume = sector_size * n_of_sectors;
 
-    long long count_upper_limit = (volume / each_bytes) + ((volume % each_bytes) ? 1 : 0);
-    if (count > count_upper_limit) {
-        count = count_upper_limit;
+    long long last_block_index = ceil((double) volume / each_bytes) - 1;
+    if (!(bench_type & 0x2)) {
+        /* sequential */
+        count = fmin(count, last_block_index);
     }
 
     char *buffer = (char *) safe_calloc(each_bytes, sizeof(char));
@@ -157,7 +159,7 @@ void run(int fd, const char *device, bench_type_t bench_type, long long each_byt
         safe_clock_gettime(CLOCK_REALTIME, &begin_tss[i]);
         if (bench_type & 0x2) {
             /* random */
-            long long offset = llrandom(0, count - 1) * each_bytes;
+            long long offset = llrandom(0, last_block_index) * each_bytes;
             safe_lseek64(fd, offset, SEEK_SET);
         }
         if (bench_type & 0x1) {
